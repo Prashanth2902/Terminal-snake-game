@@ -124,3 +124,57 @@ impl Game {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn moves_forward() {
+        let mut g = Game::new(10, 10);
+        g.food = (0, 0);
+        g.tick();
+        assert_eq!(g.snake[0], (6, 5));
+        assert_eq!(g.snake.len(), 3);
+    }
+
+    #[test]
+    fn cannot_reverse() {
+        let mut g = Game::new(10, 10);
+        g.food = (0, 0);
+        g.turn(Direction::Left);
+        g.tick();
+        assert_eq!(g.snake[0], (6, 5));
+        assert_eq!(g.state, State::Playing);
+    }
+
+    #[test]
+    fn eating_grows_and_scores() {
+        let mut g = Game::new(10, 10);
+        g.food = (6, 5);
+        g.tick();
+        assert_eq!(g.snake.len(), 4);
+        assert_eq!(g.score, 1);
+        assert!(!g.snake.contains(&g.food));
+    }
+
+    #[test]
+    fn hitting_wall_ends_game() {
+        let mut g = Game::new(10, 10);
+        g.food = (0, 0);
+        for _ in 0..10 {
+            g.tick();
+        }
+        assert_eq!(g.state, State::GameOver);
+    }
+
+    #[test]
+    fn hitting_self_ends_game() {
+        let mut g = Game::new(10, 10);
+        g.snake = VecDeque::from([(5, 5), (4, 5), (4, 6), (5, 6), (6, 6), (6, 5)]);
+        g.food = (0, 0);
+        g.turn(Direction::Down);
+        g.tick();
+        assert_eq!(g.state, State::GameOver);
+    }
+}
